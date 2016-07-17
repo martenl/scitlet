@@ -1,8 +1,12 @@
 package de.martenl.scitlet
 
-class Config {
+import java.io.File
 
+object Config {
 
+  def createAt(path:String):Unit = {
+    Files.createFile(path+File.separator+"config")
+  }
   def isBare():Boolean ={
     true
   }
@@ -19,7 +23,7 @@ class Config {
     ConfigMap(List())
   }
 
-  abstract case class ConfigData()
+  abstract class ConfigData()
 
   case class ConfigEntry(key:String,value:String) extends ConfigData
 

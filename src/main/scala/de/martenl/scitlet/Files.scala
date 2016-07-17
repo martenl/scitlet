@@ -2,12 +2,13 @@ package de.martenl.scitlet
 
 import java.io._
 
+import scala.collection.mutable
 import scala.io.Source
 
 object Files {
 
   def inRepo():Boolean = {
-    scitletPath().isDefined
+    checkForScitletPath(getWorkingDirectory()).isDefined
   }
 
   def assertInRepo():Unit = {
@@ -15,7 +16,17 @@ object Files {
   }
 
   def pathFromRepoRoot(path:String):String = {
-    ""
+    checkForScitletPath(path) match {
+      case Some(repoPath) => path.replace(repoPath,"")
+      case None => path
+    }
+  }
+
+  def absolutePath(path:String):String = {
+    checkForScitletPath(getWorkingDirectory()) match {
+      case Some(repoPath) => combine(repoPath,path)
+      case None => path
+    }
   }
 
   def write(path:String,content:String):Unit = {
@@ -42,21 +53,19 @@ object Files {
     Source.fromFile(path).getLines().mkString("\n")
   }
 
-  def scitletPath(path:String=""):Option[String] = {
-    def scitletDir(dir:String):Option[String] = {
-      val file = new File(dir)
-      if(file.exists()){
-
-      }
-      file.isDirectory()
-
-      None
+  def scitletPath(path:String=""):String = {
+    checkForScitletPath(path) match {
+      case Some(path) => combine(path,".scitlet")
+      case None =>  combine(getWorkingDirectory(),".scitlet")
     }
 
-    scitletDir("") match {
-      case Some(computedPath:String) => Some(computedPath+File.separator+path)
-      case _ => None
+  }
+
+  def checkForScitletPath(path:String):Option[String] = {
+    val hasScitletPath = (parentPath:String) => {
+      new File(combine(parentPath,".scitlet")).exists()
     }
+    createParentPaths(path).find(hasScitletPath)
   }
 
   def workingCopyPath(path:String):String = {
@@ -82,5 +91,33 @@ object Files {
     Map()
   }
 
+  def getWorkingDirectory():String = System.getProperties.getProperty("user.dir")
 
+  def existsFile(path:String):Boolean = (new File(path)).exists()
+
+  def createFile(path:String):Unit = {
+    if(!existsFile(path)){
+      (new File(path)).createNewFile()
+    }
+  }
+
+  def createDirectory(path:String):Unit = {
+    if(!existsFile(path)){
+      (new File(path)).mkdir()
+    }
+  }
+
+  def createParentPaths(originalPath:String):Array[String] = {
+    val b = mutable.Buffer[String]()
+    var f = new File(originalPath)
+    while(f != null){
+      b.append(f.getAbsolutePath)
+      f = f.getParentFile
+    }
+    b.toArray
+  }
+
+  def combine(part:String*):String = {
+    part.mkString(java.io.File.separator)
+  }
 }
