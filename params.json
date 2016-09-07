@@ -1,6 +1,6 @@
 {
   "name": "Scitlet",
   "tagline": "A Scala clone of Gitlet.js",
-  "body": "Scitlet\r\n=======\r\n\r\nThis is a port of the great Gitlet.js from JavaScript to Scala.\r\n",
+  "body": "Scitlet\r\n=======\r\n\r\nThis is a port of the great [Gitlet.js](http://gitlet.maryrosecook.com/) from JavaScript to Scala.\r\n",
   "note": "Don't delete this file! It's used internally to help with page regeneration."
 }
