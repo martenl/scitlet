@@ -45,6 +45,17 @@ class Index(val entries:mutable.Buffer[IndexEntry], val path:String) {
     inEntries || inAddedEntries
   }
 
+  def indexOf(path:String) = {
+    if(entries.exists(_.getName().equals(path))){
+      entries.indexWhere(_.getName().startsWith(path))
+    }else if(addedEntries.exists(_.getName().equals(path))){
+      entries.size + addedEntries.indexWhere(_.getName().equals(path))
+    }else{
+      -1
+    }
+
+  }
+
   def add(name:String,hash:String):Index = {
     addedEntries += IndexEntry(name,hash)
     this
@@ -59,24 +70,46 @@ class Index(val entries:mutable.Buffer[IndexEntry], val path:String) {
   }
 
   def computeTreeGraph():Object = {
-    /*entries
-      .map(indexEntry => (indexEntry.getName(),indexEntry))
-      .sortBy((_._1))
-      .foldLeft()()*/
     val directories = entries.map(indexEntry => indexEntry.getName().substring(0,indexEntry.getName().lastIndexOf(File.separator)))
-    val parents = directories.map(directory => directory.substring(0,directory.lastIndexOf(File.separator))).distinct
-    val root:Object = Tree(File.separator,"unhashed","mode",List())
-    val addEntryToTree = (tree:Object,entry:IndexEntry)=>{
-      val path:Array[String] = entry.getName().split(File.separator)
 
-    }
+    val allDirectories = directories
+      .flatMap(directory => directory :: directoryToSuperDirectories(directory))
+      .distinct
+      .filterNot(_.equals(""))
+
     val dirToFileMap = entries.groupBy((x:IndexEntry)=>{
       val path = x.getName()
       val lastIndex = path.lastIndexOf(File.separator)
       path.substring(0,lastIndex)
     })
-    dirToFileMap.keys.foreach(println(_))
-    Blob("","","")
+
+    val dirToSubdir = allDirectories.groupBy(directory => {
+      val indexRaw = directory.lastIndexOf(File.separator)
+      val index = if(indexRaw != -1) indexRaw else 0
+      directory.substring(0,index)
+    })
+
+    def buildTreeNode(path: String):Tree = {
+      val blobs:Seq[HasPath] = dirToFileMap.getOrElse(path,List()).map(entry => Blob(entry.getName(),entry.hash,"")).toList
+      val subDirs:Seq[HasPath] = dirToSubdir.getOrElse(path,List()).map(subDir =>buildTreeNode(subDir))
+      val children = (subDirs ++ blobs).sortWith((a,b)=>indexOf(a.getPath())>indexOf(b.getPath()) ).toList
+      val hash = Hasher.hashTree(children.map(_.toString()).mkString("\n"))
+      Tree(path,hash,"",children)
+    }
+
+    buildTreeNode("")
+  }
+
+  def directoryToSuperDirectories(directory:String):List[String] = {
+    def getIndices(data:String):List[Int] = getIndicesH(data,0,List())
+    def getIndicesH(data:String,lastIndex:Int,indices:List[Int]):List[Int] = {
+      data.indexOf(File.separator,lastIndex) match {
+        case -1 => indices
+        case newIndex => getIndicesH(data,newIndex+1,newIndex :: indices)
+      }
+    }
+    val indices:List[Int] = getIndices(directory)
+    indices.map(index => directory.substring(0,index))
   }
 }
 
@@ -85,6 +118,6 @@ case class IndexEntry(name:String,hash:String){
   def getName():String = name
 
   override def toString(): String ={
-    s"${name} ${hash}"
+    s"$name $hash"
   }
 }
