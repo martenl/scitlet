@@ -4,12 +4,8 @@ import java.io.File
 
 import de.martenl.scitlet.domain._
 
-/**
- * Created on 08.01.2016.
- */
 object Scitlet {
 
-  lazy val objects:Objects = new Objects()
   lazy val index:Index = Index(Files.scitletPath()+File.separator+"index")
 
   def cmd(command:Command):Unit = {
@@ -57,10 +53,9 @@ object Scitlet {
           }
           println(s"adding ${filePath} to git repository")
           val absoluteFilePath:String = Files.absolutePath(filePath)
-          val hash:String = objects.addFile(absoluteFilePath)
+          val hash:String = Objects.addFile(absoluteFilePath)
           index.add(filePath,hash).save()
       }
-
     )
   }
 
@@ -70,7 +65,7 @@ object Scitlet {
   }
 
   def commit():Unit = {
-    index.computeTreeGraph()
+    println(index.computeTreeGraph())
   }
 
   def branch():Unit = {
