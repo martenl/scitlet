@@ -2,23 +2,39 @@ package de.martenl.scitlet
 
 import java.io.File
 
-abstract sealed class Object()
+abstract sealed class Object(){
 
-case class Blob(val path:String,val hash:String,val mode:String) extends Object
+}
 
-case class Tree(val path:String,val hash:String,val mode:String,val objects:List[Object]) extends Object {
+trait HasPath{
+  def getPath():String
+}
 
-  def getChild(path:Array[String]):Option[Object] = {
+case class Blob(val path:String,val hash:String,val mode:String) extends Object with HasPath{
 
-    val optional = objects.find((o:Object)
-    => o match {
-        case Blob(name,_,_) if path.length==1 => name.equals(path(0))
-        case Tree(name,_,_,_)  => name.equals(path(0))
-        case _  => false
-    })
-
-    optional
+  override def toString():String = {
+    s"$mode blob $hash $path"
   }
+
+  override def getPath(): String = path
+}
+
+case class Tree(val path:String,val hash:String,val mode:String,val objects:List[HasPath]) extends Object with HasPath{
+
+  /*def getChild(path:Array[String]):Option[Object] = {
+
+    val optional = objects.find {
+      case Blob(name, _, _) if path.length == 1 => name.equals(path(0))
+      case Tree(name, _, _, _) => name.equals(path(0))
+      case _ => false
+    }
+    optional
+  }*/
+  override def toString():String = {
+    s"$path $hash ${objects.size}"
+  }
+
+  override def getPath(): String = path
 }
 
 case class CommitObject(val tree:String,val hash:String,val commiter:String,val parent:Option[String]) extends Object
@@ -34,12 +50,12 @@ object Object{
   }
 
   def apply(path:String):Option[Object] = {
-    if(new File(path).isFile ){
-     return Some(createBlob(path))
-    }else if(new File(path).isDirectory){
-      Some(createTree(path))
+    val file = new File(path)
+    file.isFile match {
+      case true => Some(createBlob(path))
+      case _ if file.isDirectory => Some(createTree(path))
+      case _ => None
     }
-    None
   }
 
 }
