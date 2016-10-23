@@ -2,16 +2,14 @@ package de.martenl.scitlet
 
 import java.io.File
 
-/**
- * Created on 08.01.2016.
- */
 object Refs {
 
   def createAt(path:String):Unit = {
     Files.createDirectory(path+File.separator+"refs")
   }
-}
 
-class Refs {
-
+  def setRemoteHead(remoteName:String,headName:String,value:String):Unit = {
+    val refPath = "refs" + File.separator + "remote" + File.separator + remoteName + File.separator + headName
+    Files.write(refPath,value)
+  }
 }
