@@ -43,29 +43,24 @@ case class UpdateRef() extends Command
 
 object Command{
 
-  def apply(args:Array[String]):Command = {
-    if(args==null || args.length == 0) Error("No command")
-    else{
-      val cmd:String = args(0).toLowerCase
-      cmd match {
-        case "init" => Init()
-        case "add" => {
-          if(args.length >= 2){
-            Add(args(1))
-          }else{
-            Error("No file to add")
-          }
-        }
-        case "commit" => Commit(args.drop(1).toList)
-        case "rm" => {
-          if(args.length < 2){
-            Error("No file to remove")
-          }else{
-            Rm(args(1),args.drop(2).toList)
-          }
-        }
-        case _ => Error("Unknown command")
-      }
+  def apply(args:Option[Array[String]]):Command = {
+    args match {
+      case None => Error("No command")
+      case Some(arguments) if arguments.length == 0 =>Error("No command")
+      case Some(arguments) => parseCommand(arguments)
+    }
+  }
+
+  def parseCommand(args: Array[String]) = {
+    val cmd:String = args(0).toLowerCase
+    cmd match {
+      case "init" => Init()
+      case "add" if args.length >= 2 => Add(args(1))
+      case "add" => Error("No file to add")
+      case "commit" => Commit(args.drop(1).toList)
+      case "rm" if args.length >= 2 => Rm(args(1),args.drop(2).toList)
+      case "rm" => Error("No file to remove")
+      case _ => Error("Unknown command")
     }
   }
 }
