@@ -74,12 +74,10 @@ object Files {
 
   def lsRecursive(path:String):List[String] = {
     val file = new File(path)
-    if(!file.exists){
-      List()
-    }else if(file.isFile){
-      List(path)
-    }else{
-      file.listFiles().toList.flatMap(x => lsRecursive(x.getAbsolutePath))
+    file.exists() match {
+      case false => List()
+      case _ if(file.isFile) => List(path)
+      case _ => file.listFiles().toList.flatMap(x => lsRecursive(x.getAbsolutePath))
     }
   }
 
@@ -93,17 +91,17 @@ object Files {
 
   def getWorkingDirectory():String = System.getProperties.getProperty("user.dir")
 
-  def existsFile(path:String):Boolean = (new File(path)).exists()
+  def existsFile(path:String):Boolean = new File(path).exists()
 
   def createFile(path:String):Unit = {
     if(!existsFile(path)){
-      (new File(path)).createNewFile()
+      new File(path).createNewFile()
     }
   }
 
   def createDirectory(path:String):Unit = {
     if(!existsFile(path)){
-      (new File(path)).mkdir()
+      new File(path).mkdir()
     }
   }
 
