@@ -6,18 +6,21 @@ import java.util.zip._
 object Zipper {
 
   def zipFile(path:String,destination:String,fileName:String):Unit = {
-    val content = Files.read(path)
-    val bytes = content.getBytes
+    zipData(Files.read(path),destination,fileName)
+  }
+
+  def zipData(data:String,destination:String,fileName:String)={
+    val bytes = data.getBytes
+    val bytesToWrite = new Array[Byte](bytes.length)
     val deflater = new Deflater()
     deflater.setInput(bytes)
-    val bytesToWrite = new Array[Byte](100)
+    deflater.finish()
+    val compressedDataLength = deflater.deflate(bytesToWrite)
+    deflater.end()
     Files.createDirectory(destination)
     val destFile = destination+File.separator+fileName
     val out = new FileOutputStream(destFile)
-    while(!deflater.finished()){
-      deflater.deflate(bytesToWrite)
-      out.write(bytesToWrite)
-    }
+    out.write(bytesToWrite,0,compressedDataLength)
     out.close()
   }
 
@@ -29,12 +32,17 @@ object Zipper {
         inflater.setInput(bytes)
         val builder = new StringBuilder()
         val output = new Array[Byte](1024)
-        while (!inflater.finished()){
+        def inflate(): String ={
           inflater.inflate(output)
           builder.append(new String(output))
+          inflater.finished() match {
+            case true => inflater.inflate(output)
+              builder.append(new String(output))
+              builder.toString()
+            case false => inflate()
+          }
         }
-        println(builder.toString().trim.size)
-        builder.toString().trim
+        inflate()
       }
       case false => "Nothing found"
     }
