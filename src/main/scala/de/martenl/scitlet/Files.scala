@@ -7,6 +7,8 @@ import scala.io.Source
 
 object Files {
 
+  val parentPathName:String = ".scitlet"
+
   def inRepo():Boolean = {
     checkForScitletPath(getWorkingDirectory()).isDefined
   }
@@ -33,6 +35,7 @@ object Files {
     val file = new File(path)
     val bufferedWriter = new BufferedWriter(new FileWriter(file))
     bufferedWriter.write(content)
+    bufferedWriter.close()
   }
 
   def writeFilesFromTree(tree:String,prefix:String):Unit = {
@@ -55,15 +58,15 @@ object Files {
 
   def scitletPath(path:String=""):String = {
     checkForScitletPath(path) match {
-      case Some(path) => combine(path,".scitlet")
-      case None =>  combine(getWorkingDirectory(),".scitlet")
+      case Some(foundPath) => combine(foundPath,parentPathName)
+      case None =>  combine(getWorkingDirectory(),parentPathName)
     }
 
   }
 
   def checkForScitletPath(path:String):Option[String] = {
     val hasScitletPath = (parentPath:String) => {
-      new File(combine(parentPath,".scitlet")).exists()
+      new File(combine(parentPath,parentPathName)).exists()
     }
     createParentPaths(path).find(hasScitletPath)
   }
