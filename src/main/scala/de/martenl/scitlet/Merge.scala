@@ -1,6 +1,4 @@
 package de.martenl.scitlet
 
 
-object SMerge {
-
-}
+object SMerge

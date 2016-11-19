@@ -1,5 +1,3 @@
 package de.martenl.scitlet
 
-object WorkingCopy {
-
-}
+object WorkingCopy
