@@ -21,7 +21,7 @@ object Scitlet {
     val directoryPath:String = Files.getWorkingDirectory()
     val scitletPath: String = directoryPath + File.separator + ".scitlet"
     Files.createDirectory(scitletPath)
-    Objects.createAt(scitletPath)
+    ObjectStore.createAt(scitletPath)
     Refs.createAt(scitletPath)
     Index.createAt(scitletPath)
     Files.createFile(scitletPath+File.separator+"HEAD")
@@ -33,13 +33,13 @@ object Scitlet {
     //are we in a scitlet repository?
     if(!Files.inRepo()){
       println("You must be in a scitlet repository to add a file.\nTo create a scitlet repository run scitlet init")
-      System.exit(1)
+      return
     }
     //does the file exist?
     val absolutePath:String = Files.absolutePath(path)
     if(!Files.existsFile(absolutePath)){
       println(s"${path} does not exist")
-      System.exit(1)
+      return
     }
     val reachableFiles:List[String] = Files.lsRecursive(absolutePath)
     reachableFiles
@@ -49,11 +49,11 @@ object Scitlet {
             //was the file already added?
           if(index.contains(filePath)){
             println(s"File ${filePath} was already added")
-            System.exit(1)
+            return
           }
           println(s"adding ${filePath} to git repository")
           val absoluteFilePath:String = Files.absolutePath(filePath)
-          val hash:String = Objects.addFile(absoluteFilePath)
+          val hash:String = ObjectStore.storeFile(absoluteFilePath)
           index.add(filePath,hash).save()
       }
     )
@@ -65,7 +65,10 @@ object Scitlet {
   }
 
   def commit():Unit = {
-    println(index.computeTreeGraph())
+    val tree:Tree = index.computeTreeGraph()
+    ObjectStore.store(tree)
+    val parent:Option[String] = Head.get()
+    val commitObject = CommitObject(tree.toString(),"my-hash","m@b.de",parent)
   }
 
   def branch():Unit = {
