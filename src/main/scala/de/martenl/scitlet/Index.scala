@@ -36,8 +36,32 @@ class Index(val entries:mutable.Buffer[IndexEntry], val path:String) {
   val addedEntries:mutable.Buffer[IndexEntry] = new ListBuffer[IndexEntry]
 
   def remove(path: String): Unit = {
-
+    if(!removeInEntries(path)){
+      removeInAddedEntries(path)
+    }
   }
+
+
+
+  def removeInBuffer(buffer:mutable.Buffer[IndexEntry])(path:String):Boolean={
+    val index = buffer.indexOf(path)
+    index match {
+      case -1 => false
+      case _ =>
+        buffer.remove(index)
+        true
+    }
+  }
+  def removeInEntries:(String)=>Boolean= removeInBuffer(entries)/*{
+    val index = entries.indexOf(path)
+    index match {
+      case -1 => false
+      case _ =>
+        entries.remove(index)
+        true
+    }
+  }*/
+  def removeInAddedEntries:(String)=>Boolean= removeInBuffer(addedEntries)
 
   def contains(path: String): Boolean = {
     val inEntries:Boolean = entries.exists(entry => entry.getName().equals(path))
@@ -46,14 +70,12 @@ class Index(val entries:mutable.Buffer[IndexEntry], val path:String) {
   }
 
   def indexOf(path:String) = {
-    if(entries.exists(_.getName().equals(path))){
-      entries.indexWhere(_.getName().startsWith(path))
-    }else if(addedEntries.exists(_.getName().equals(path))){
-      entries.size + addedEntries.indexWhere(_.getName().equals(path))
-    }else{
-      -1
+    entries.exists(_.getName().equals(path)) match {
+      case true => entries.indexWhere(_.getName().startsWith(path))
+      case false if (addedEntries.exists(_.getName().equals(path)))
+        => entries.size + addedEntries.indexWhere(_.getName().equals(path))
+      case _ => -1
     }
-
   }
 
   def add(name:String,hash:String):Index = {
@@ -69,7 +91,7 @@ class Index(val entries:mutable.Buffer[IndexEntry], val path:String) {
     bw.close()
   }
 
-  def computeTreeGraph():Object = {
+  def computeTreeGraph():Tree = {
     val directories = entries.map(indexEntry => indexEntry.getName().substring(0,indexEntry.getName().lastIndexOf(File.separator)))
 
     val allDirectories = directories
