@@ -47,11 +47,11 @@ object Command{
     args match {
       case None => Error("No command")
       case Some(arguments) if arguments.length == 0 =>Error("No command")
-      case Some(arguments) => parseCommand(arguments)
+      case Some(arguments) => parse(arguments)
     }
   }
 
-  def parseCommand(args: Array[String]) = {
+  def parse(args: Array[String]) = {
     val cmd:String = args(0).toLowerCase
     cmd match {
       case "init" => Init()
