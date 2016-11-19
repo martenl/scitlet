@@ -47,6 +47,14 @@ object Config {
   case class ConfigEntry(key:String,value:String) extends ConfigData
 
   case class ConfigMap(entries:List[ConfigData]) extends ConfigData {
-
+    
+    def get(key:String):Option[ConfigData] = {
+      entries.find(
+        configData => configData match {
+          case configEntry:ConfigEntry => configEntry.key.equals(key)
+          case  _ => false
+        }
+      )
+    }
   }
 }
