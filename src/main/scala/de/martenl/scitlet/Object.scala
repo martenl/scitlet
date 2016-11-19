@@ -2,9 +2,7 @@ package de.martenl.scitlet
 
 import java.io.File
 
-abstract sealed class Object(){
-
-}
+abstract sealed class Object()
 
 trait HasPath{
   def getPath():String
